@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antree | Antique & Decorative Arts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #fdfbf7; }
+        h1, h2, .antique-font { font-family: 'Playfair Display', serif; }
+        .product-card:hover { transform: translateY(-8px); transition: all 0.3s ease; }
+    </style>
+</head>
+<body>
+
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-stone-200 px-8 py-4 flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-stone-800">ANTREE</h1>
+        <div class="flex gap-6 items-center">
+            <button onclick="toggleCart()" class="relative p-2">
+                <i data-lucide="shopping-cart"></i>
+                <span id="cart-count" class="absolute -top-1 -right-1 bg-amber-700 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <header class="text-center py-16 px-4">
+        <h2 class="text-5xl mb-4 text-stone-800">Timeless Treasures</h2>
+        <p class="text-stone-600 max-w-lg mx-auto">Discover our 3x9 curated collection of antique finds and decorative soul.</p>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-8 pb-20">
+        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            </div>
+    </main>
+
+    <div id="cart-sidebar" class="fixed right-0 top-0 h-full w-80 bg-white shadow-2xl translate-x-full transition-transform duration-300 z-[60] p-6 border-l border-stone-200">
+        <div class="flex justify-between items-center mb-8">
+            <h3 class="antique-font text-2xl">Your Collection</h3>
+            <button onclick="toggleCart()"><i data-lucide="x"></i></button>
+        </div>
+        <div id="cart-items" class="space-y-4 overflow-y-auto h-3/4">
+            <p class="text-stone-400 italic">Your cart is empty...</p>
+        </div>
+        <div class="absolute bottom-0 left-0 w-full p-6 border-t border-stone-100 bg-stone-50">
+            <div class="flex justify-between mb-4 font-bold text-lg">
+                <span>Total:</span>
+                <span id="cart-total">$0.00</span>
+            </div>
+            <button onclick="payNow()" class="w-full bg-stone-800 text-white py-3 rounded hover:bg-amber-800 transition-colors">
+                Checkout & Pay
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        let cart = [];
+        const productGrid = document.getElementById('product-grid');
+
+        // Generate 27 Items (3x9)
+        const categories = ["Vase", "Mirror", "Clock", "Lamp", "Frame", "Statue"];
+        for (let i = 1; i <= 27; i++) {
+            const price = (Math.random() * 200 + 45).toFixed(2);
+            const item = categories[i % categories.length];
+            
+            productGrid.innerHTML += `
+                <div class="product-card bg-white border border-stone-100 p-4 shadow-sm group">
+                    <div class="h-64 bg-stone-200 mb-4 overflow-hidden relative">
+                        <img src="https://picsum.photos/seed/${i+40}/400/500" class="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                        <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    </div>
+                    <h3 class="antique-font text-xl text-stone-800">Antique ${item} No. ${i}</h3>
+                    <p class="text-stone-500 text-sm mb-4 italic text-sm">Hand-selected decorative piece</p>
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-stone-700 text-lg">$${price}</span>
+                        <button onclick="addToCart('Antique ${item} No. ${i}', ${price})" class="bg-stone-100 hover:bg-stone-800 hover:text-white p-2 rounded-full transition-all">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function addToCart(name, price) {
+            cart.push({name, price});
+            updateUI();
+            // Subtle animation for the cart icon
+            const cartBtn = document.querySelector('#cart-count');
+            cartBtn.classList.add('scale-125', 'bg-green-600');
+            setTimeout(() => cartBtn.classList.remove('scale-125', 'bg-green-600'), 300);
+        }
+
+        function updateUI() {
+            document.getElementById('cart-count').innerText = cart.length;
+            const cartList = document.getElementById('cart-items');
+            const totalEl = document.getElementById('cart-total');
+            
+            if(cart.length === 0) {
+                cartList.innerHTML = '<p class="text-stone-400 italic">Your cart is empty...</p>';
+                totalEl.innerText = "$0.00";
+                return;
+            }
+
+            cartList.innerHTML = cart.map((item, idx) => `
+                <div class="flex justify-between border-b border-stone-100 pb-2">
+                    <div>
+                        <p class="text-sm font-semibold">${item.name}</p>
+                        <p class="text-xs text-stone-500">$${item.price}</p>
+                    </div>
+                    <button onclick="removeItem(${idx})" class="text-red-400">×</button>
+                </div>
+            `).join('');
+
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+            totalEl.innerText = `$${total.toFixed(2)}`;
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            updateUI();
+        }
+
+        function toggleCart() {
+            const sidebar = document.getElementById('cart-sidebar');
+            sidebar.classList.toggle('translate-x-full');
+        }
+
+        function payNow() {
+            if(cart.length === 0) return alert("Your cart is empty!");
+            const total = document.getElementById('cart-total').innerText;
+            alert(`Redirecting to Secure Payment Gateway...\nTotal: ${total}\n\nThank you for shopping with Antree!`);
+            cart = [];
+            updateUI();
+            toggleCart();
+        }
+    </script>
+</body>
+</html>
